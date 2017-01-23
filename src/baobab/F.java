@@ -176,6 +176,45 @@ public class F {
             }
         }
 
+        class DisjointSet {
+            /** Union Find / Disjoint Set data structure. */
+            int[] size;
+            int[] parent;
+            int componentCount;
+
+            public DisjointSet(int n) {
+                componentCount = n;
+                size = new int[n];
+                parent = new int[n];
+                for (int i=0; i<n; i++) parent[i] = i;
+                for (int i=0; i<n; i++) size[i] = 1;
+            }
+
+            public void join(int a, int b) {
+                /* Find roots */
+                int rootA = parent[a];
+                int rootB = parent[b];
+                while (rootA != parent[rootA]) rootA = parent[rootA];
+                while (rootB != parent[rootB]) rootB = parent[rootB];
+
+                if (rootA == rootB) {
+                    /* Already in the same set */
+                    return;
+                }
+
+                /* Merge smaller set into larger set. */
+                if (size[rootA] > size[rootB]) {
+                    size[rootA] += size[rootB];
+                    parent[rootB] = rootA;
+                } else {
+                    size[rootB] += size[rootA];
+                    parent[rootA] = rootB;
+                }
+                componentCount--;
+            }
+
+        }
+
         class LCAFinder {
 
             /* O(n log n) Initialize: new LCAFinder(graph)
