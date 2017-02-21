@@ -116,7 +116,7 @@ public class G {
             return a * b / gcd(a,b);
         }
 
-        class ElementCounter {
+        private class ElementCounter {
             private HashMap<Long, Integer> elements;
 
             public ElementCounter() {
@@ -662,8 +662,8 @@ public class G {
                 if (nullOrNaN(a)) return copy(b);
                 if (nullOrNaN(b)) return copy(a);
 
-                double x = a.logP;
-                double y = b.logP;
+                double x = Math.max(a.logP, b.logP);
+                double y = Math.min(a.logP, b.logP);
                 double sum = x + Math.log(1 + Math.exp(y - x));
                 return new Prob(sum, dontLogAgain);
             }
@@ -1178,8 +1178,4 @@ public class G {
     }
 
 }
-
-
-
-
 
