@@ -5,6 +5,8 @@ import java.util.*;
 
 public class D {
 
+    public static final boolean DEBUG_PRINTS = false;
+
     public static void main(String[] args) {
         Solver solver = new Solver();
     }
@@ -16,6 +18,11 @@ public class D {
             this.io = new IO();
             try {
                 solve();
+            } catch (RuntimeException e) {
+                if (!e.getMessage().equals("Clean exit")) {
+                    System.out.println(e.getMessage());
+                    e.printStackTrace();
+                }
             } finally {
                 io.close();
             }
@@ -1174,6 +1181,74 @@ public class D {
                 return Double.parseDouble(next());
             }
 
+        }
+
+        void print(Object output) {
+            io.println(output);
+        }
+
+        void done(Object output) {
+            print(output);
+            done();
+        }
+
+        void done() {
+            io.close();
+            throw new RuntimeException("Clean exit");
+        }
+
+        long min(long... v) {
+            long ans = v[0];
+            for (int i=1; i<v.length; i++) {
+                ans = Math.min(ans, v[i]);
+            }
+            return ans;
+        }
+
+        double min(double... v) {
+            double ans = v[0];
+            for (int i=1; i<v.length; i++) {
+                ans = Math.min(ans, v[i]);
+            }
+            return ans;
+        }
+
+        int min(int... v) {
+            int ans = v[0];
+            for (int i=1; i<v.length; i++) {
+                ans = Math.min(ans, v[i]);
+            }
+            return ans;
+        }
+
+        long max(long... v) {
+            long ans = v[0];
+            for (int i=1; i<v.length; i++) {
+                ans = Math.max(ans, v[i]);
+            }
+            return ans;
+        }
+
+        double max(double... v) {
+            double ans = v[0];
+            for (int i=1; i<v.length; i++) {
+                ans = Math.max(ans, v[i]);
+            }
+            return ans;
+        }
+
+        int max(int... v) {
+            int ans = v[0];
+            for (int i=1; i<v.length; i++) {
+                ans = Math.max(ans, v[i]);
+            }
+            return ans;
+        }
+
+        void debug(Object output) {
+            if (DEBUG_PRINTS) {
+                System.out.println(output);
+            }
         }
     }
 
