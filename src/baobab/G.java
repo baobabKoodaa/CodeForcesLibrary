@@ -20,8 +20,7 @@ public class G {
                 solve();
             } catch (RuntimeException e) {
                 if (!e.getMessage().equals("Clean exit")) {
-                    System.out.println(e.getMessage());
-                    e.printStackTrace();
+                    throw e;
                 }
             } finally {
                 io.close();
