@@ -400,7 +400,7 @@ public class E {
 
             public SegmentTree(int n) {
                 /* TODO: Test that this works. */
-                N = n;
+                for (N=2; N<n; N++) N *= 2;
                 p = new long[2*N];
             }
 
