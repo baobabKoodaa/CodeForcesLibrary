@@ -131,20 +131,21 @@ public class C {
 
             public void add(long element) {
                 int count = 1;
-                if (elements.containsKey(element)) count += elements.get(element);
+                Integer prev = elements.get(element);
+                if (prev != null) count += prev;
                 elements.put(element, count);
             }
 
             public void remove(long element) {
-                int count = elements.get(element);
+                int count = elements.remove(element);
                 count--;
-                if (count == 0) elements.remove(element);
-                else elements.put(element, count);
+                if (count > 0) elements.put(element, count);
             }
 
             public int get(long element) {
-                if (!elements.containsKey(element)) return 0;
-                return elements.get(element);
+                Integer val = elements.get(element);
+                if (val == null) return 0;
+                return val;
             }
 
             public int size() {
@@ -153,28 +154,29 @@ public class C {
         }
 
         class StringCounter {
-            HashMap<String, Long> elements;
+            HashMap<String, Integer> elements;
 
             public StringCounter() {
                 elements = new HashMap<>();
             }
 
             public void add(String identifier) {
-                long count = 1;
-                if (elements.containsKey(identifier)) count += elements.get(identifier);
+                int count = 1;
+                Integer prev = elements.get(identifier);
+                if (prev != null) count += prev;
                 elements.put(identifier, count);
             }
 
             public void remove(String identifier) {
-                long count = elements.get(identifier);
+                int count = elements.remove(identifier);
                 count--;
-                if (count == 0) elements.remove(identifier);
-                else elements.put(identifier, count);
+                if (count > 0) elements.put(identifier, count);
             }
 
             public long get(String identifier) {
-                if (!elements.containsKey(identifier)) return 0;
-                return elements.get(identifier);
+                Integer val = elements.get(identifier);
+                if (val == null) return 0;
+                return val;
             }
 
             public int size() {
