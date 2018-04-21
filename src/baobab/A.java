@@ -969,8 +969,7 @@ public class A {
                     }
                     curr = next;
                 }
-                int last = word.charAt(word.length()-1) - 'a';
-                end[last] = true;
+                end[curr] = true;
             }
 
             public boolean hasWord(String word) {
@@ -981,8 +980,7 @@ public class A {
                     if (next == 0) return false;
                     curr = next;
                 }
-                int last = word.charAt(word.length()-1) - 'a';
-                return end[last];
+                return end[curr];
             }
 
         }
