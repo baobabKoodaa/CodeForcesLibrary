@@ -54,6 +54,69 @@ public class F {
             return g;
         }
 
+        class Graph {
+            HashMap<Long, List<Long>> edges;
+
+            public Graph() {
+                edges = new HashMap<>();
+            }
+
+            List<Long> getSetNeighbors(Long node) {
+                List<Long> neighbors = edges.get(node);
+                if (neighbors == null) {
+                    neighbors = new ArrayList<>();
+                    edges.put(node, neighbors);
+                }
+                return neighbors;
+            }
+
+            void addBiEdge(Long a, Long b) {
+                addEdge(a, b);
+                addEdge(b, a);
+            }
+
+            void addEdge(Long from, Long to) {
+                getSetNeighbors(to); // make sure all have initialized lists
+                List<Long> neighbors = getSetNeighbors(from);
+                neighbors.add(to);
+            }
+
+            // topoSort variables
+            int UNTOUCHED = 0;
+            int FINISHED = 2;
+            int INPROGRESS = 1;
+            HashMap<Long, Integer> vis;
+            List<Long> topoAns;
+            List<Long> failDueToCycle = new ArrayList<Long>() {{ add(-1L); }};
+
+            List<Long> topoSort() {
+                topoAns = new ArrayList<>();
+                vis = new HashMap<>();
+                for (Long a : edges.keySet()) {
+                    if (!topoDFS(a)) return failDueToCycle;
+                }
+                Collections.reverse(topoAns);
+                return topoAns;
+            }
+
+            boolean topoDFS(long curr) {
+                Integer status = vis.get(curr);
+                if (status == null) status = UNTOUCHED;
+                if (status == FINISHED) return true;
+                if (status == INPROGRESS) {
+                    return false;
+                }
+                vis.put(curr, INPROGRESS);
+                for (long next : edges.get(curr)) {
+                    if (!topoDFS(next)) return false;
+                }
+                vis.put(curr, FINISHED);
+                topoAns.add(curr);
+                return true;
+            }
+
+        }
+
         class Point {
             int y;
             int x;
