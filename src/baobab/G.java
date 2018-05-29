@@ -5,8 +5,6 @@ import java.util.*;
 
 public class G {
 
-    public static final boolean DEBUG_PRINTS = false;
-
     public static void main(String[] args) {
         Solver solver = new Solver();
     }
@@ -1307,11 +1305,6 @@ public class G {
             return ans;
         }
 
-        void debug(Object output) {
-            if (DEBUG_PRINTS) {
-                System.out.println(output);
-            }
-        }
     }
 
 }
