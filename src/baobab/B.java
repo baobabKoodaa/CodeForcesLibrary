@@ -39,89 +39,51 @@ public class B {
 
         long MOD = (long)1e9 + 7;
 
-        List<Integer>[] toGraph(IO io, int n) {
-            List<Integer>[] g = new ArrayList[n+1];
-            for (int i=1; i<=n; i++) g[i] = new ArrayList<>();
-            for (int i=1; i<=n-1; i++) {
-                int a = io.nextInt();
-                int b = io.nextInt();
-                g[a].add(b);
-                g[b].add(a);
-            }
-            return g;
+        boolean closeToZero(double v) {
+            // Check if double is close to zero, considering precision issues.
+            return Math.abs(v) <= 0.0000000000001;
         }
 
-        class Graph {
-            HashMap<Long, List<Long>> edges;
+        class DrawGrid {
 
-            public Graph() {
-                edges = new HashMap<>();
-            }
-
-            List<Long> getSetNeighbors(Long node) {
-                List<Long> neighbors = edges.get(node);
-                if (neighbors == null) {
-                    neighbors = new ArrayList<>();
-                    edges.put(node, neighbors);
+            void draw(boolean[][] d) {
+                System.out.print("  ");
+                for (int x=0; x<d[0].length; x++) {
+                    System.out.print(" " + x + " ");
                 }
-                return neighbors;
-            }
-
-            void addBiEdge(Long a, Long b) {
-                addEdge(a, b);
-                addEdge(b, a);
-            }
-
-            void addEdge(Long from, Long to) {
-                getSetNeighbors(to); // make sure all have initialized lists
-                List<Long> neighbors = getSetNeighbors(from);
-                neighbors.add(to);
-            }
-
-            // topoSort variables
-            int UNTOUCHED = 0;
-            int FINISHED = 2;
-            int INPROGRESS = 1;
-            HashMap<Long, Integer> vis;
-            List<Long> topoAns;
-            List<Long> failDueToCycle = new ArrayList<Long>() {{ add(-1L); }};
-
-            List<Long> topoSort() {
-                topoAns = new ArrayList<>();
-                vis = new HashMap<>();
-                for (Long a : edges.keySet()) {
-                    if (!topoDFS(a)) return failDueToCycle;
+                System.out.println("");
+                for (int y=0; y<d.length; y++) {
+                    System.out.print(y + " ");
+                    for (int x=0; x<d[0].length; x++) {
+                        System.out.print((d[y][x] ? "[x]" : "[ ]"));
+                    }
+                    System.out.println("");
                 }
-                Collections.reverse(topoAns);
-                return topoAns;
             }
 
-            boolean topoDFS(long curr) {
-                Integer status = vis.get(curr);
-                if (status == null) status = UNTOUCHED;
-                if (status == FINISHED) return true;
-                if (status == INPROGRESS) {
-                    return false;
+            void draw(int[][] d) {
+                int max = 1;
+                for (int y=0; y<d.length; y++) {
+                    for (int x=0; x<d[0].length; x++) {
+                        max = Math.max(max, ("" + d[y][x]).length());
+                    }
                 }
-                vis.put(curr, INPROGRESS);
-                for (long next : edges.get(curr)) {
-                    if (!topoDFS(next)) return false;
+                System.out.print("  ");
+                String format = "%" + (max+2) + "s";
+                for (int x=0; x<d[0].length; x++) {
+                    System.out.print(String.format(format, x) + " ");
                 }
-                vis.put(curr, FINISHED);
-                topoAns.add(curr);
-                return true;
+                format = "%" + (max) + "s";
+                System.out.println("");
+                for (int y=0; y<d.length; y++) {
+                    System.out.print(y + " ");
+                    for (int x=0; x<d[0].length; x++) {
+                        System.out.print(" [" + String.format(format, (d[y][x])) + "]");
+                    }
+                    System.out.println("");
+                }
             }
 
-        }
-
-        class Point {
-            int y;
-            int x;
-
-            public Point(int y, int x) {
-                this.y = y;
-                this.x = x;
-            }
         }
 
         class IDval implements Comparable<IDval> {
@@ -139,47 +101,6 @@ public class B {
                 if (this.val > o.val) return 1;
                 return this.id - o.id;
             }
-        }
-
-        long pow(long base, int exp) {
-            if (exp == 0) return 1L;
-            long x = pow(base, exp/2);
-            long ans = x * x;
-            if (exp % 2 != 0) ans *= base;
-            return ans;
-        }
-
-        long gcd(long... v) {
-            /** Chained calls to Euclidean algorithm. */
-            if (v.length == 1) return v[0];
-            long ans = gcd(v[1], v[0]);
-            for (int i=2; i<v.length; i++) {
-                ans = gcd(ans, v[i]);
-            }
-            return ans;
-        }
-
-        long gcd(long a, long b) {
-            /** Euclidean algorithm. */
-            if (b == 0) return a;
-            return gcd(b, a%b);
-        }
-
-        int[] generatePrimesUpTo(int last) {
-            /* Sieve of Eratosthenes. Practically O(n). Values of 0 indicate primes. */
-            int[] div = new int[last+1];
-            for (int x=2; x<=last; x++) {
-                if (div[x] > 0) continue;
-                for (int u=2*x; u<=last; u+=x) {
-                    div[u] = x;
-                }
-            }
-            return div;
-        }
-
-        long lcm(long a, long b) {
-            /** Least common multiple */
-            return a * b / gcd(a,b);
         }
 
         private class ElementCounter {
@@ -283,58 +204,209 @@ public class B {
 
         }
 
-        class LCAFinder {
+        class Trie {
+            int N;
+            int Z;
+            int nextFreeId;
+            int[][] pointers;
+            boolean[] end;
 
-            /* O(n log n) Initialize: new LCAFinder(graph)
-             * O(log n) Queries: find(a,b) returns lowest common ancestor for nodes a and b */
-
-            int[] nodes;
-            int[] depths;
-            int[] entries;
-            int pointer;
-            FenwickMin fenwick;
-
-            public LCAFinder(List<Integer>[] graph) {
-                this.nodes = new int[(int)10e6];
-                this.depths = new int[(int)10e6];
-                this.entries = new int[graph.length];
-                this.pointer = 1;
-                boolean[] visited = new boolean[graph.length+1];
-                dfs(1, 0, graph, visited);
-                fenwick = new FenwickMin(pointer-1);
-                for (int i=1; i<pointer; i++) {
-                    fenwick.set(i, depths[i] * 1000000L + i);
-                }
+            /** maxLenSum = maximum possible sum of length of words */
+            public Trie(int maxLenSum, int alphabetSize) {
+                this.N = maxLenSum;
+                this.Z = alphabetSize;
+                this.nextFreeId = 1;
+                pointers = new int[N+1][alphabetSize];
+                end = new boolean[N+1];
             }
 
-            private void dfs(int node, int depth, List<Integer>[] graph, boolean[] visited) {
-                visited[node] = true;
-                entries[node] = pointer;
-                nodes[pointer] = node;
-                depths[pointer] = depth;
-                pointer++;
-                for (int neighbor : graph[node]) {
-                    if (visited[neighbor]) continue;
-                    dfs(neighbor, depth+1, graph, visited);
-                    nodes[pointer] = node;
-                    depths[pointer] = depth;
-                    pointer++;
+            public void addWord(String word) {
+                int curr = 0;
+                for (int j=0; j<word.length(); j++) {
+                    int c = word.charAt(j) - 'a';
+                    int next = pointers[curr][c];
+                    if (next == 0) {
+                        next = nextFreeId++;
+                        pointers[curr][c] = next;
+                    }
+                    curr = next;
                 }
+                end[curr] = true;
             }
 
-            public int find(int a, int b) {
-                int left = entries[a];
-                int right = entries[b];
-                if (left > right) {
-                    int temp = left;
-                    left = right;
-                    right = temp;
+            public boolean hasWord(String word) {
+                int curr = 0;
+                for (int j=0; j<word.length(); j++) {
+                    int c = word.charAt(j) - 'a';
+                    int next = pointers[curr][c];
+                    if (next == 0) return false;
+                    curr = next;
                 }
-                long mixedBag = fenwick.getMin(left, right);
-                int index = (int) (mixedBag % 1000000L);
-                return nodes[index];
+                return end[curr];
+            }
+
+        }
+
+        private static class Prob {
+
+            /** For heavy calculations on probabilities, this class
+             *  provides more accuracy & efficiency than doubles.
+             *  Math explained: https://en.wikipedia.org/wiki/Log_probability
+             *  Quick start:
+             *      - Instantiate probabilities, eg. Prob a = new Prob(0.75)
+             *      - add(), multiply() return new objects, can perform on nulls & NaNs.
+             *      - get() returns probability as a readable double */
+
+            /** Logarithmized probability. Note: 0% represented by logP NaN. */
+            private double logP;
+
+            /** Construct instance with real probability. */
+            public Prob(double real) {
+                if (real > 0) this.logP = Math.log(real);
+                else this.logP = Double.NaN;
+            }
+
+            /** Construct instance with already logarithmized value. */
+            static boolean dontLogAgain = true;
+            public Prob(double logP, boolean anyBooleanHereToChooseThisConstructor) {
+                this.logP = logP;
+            }
+
+            /** Returns real probability as a double. */
+            public double get() {
+                return Math.exp(logP);
+            }
+
+            @Override
+            public String toString() {
+                return ""+get();
+            }
+
+            /***************** STATIC METHODS BELOW ********************/
+
+            /** Note: returns NaN only when a && b are both NaN/null. */
+            public static Prob add(Prob a, Prob b) {
+                if (nullOrNaN(a) && nullOrNaN(b)) return new Prob(Double.NaN, dontLogAgain);
+                if (nullOrNaN(a)) return copy(b);
+                if (nullOrNaN(b)) return copy(a);
+
+                double x = Math.max(a.logP, b.logP);
+                double y = Math.min(a.logP, b.logP);
+                double sum = x + Math.log(1 + Math.exp(y - x));
+                return new Prob(sum, dontLogAgain);
+            }
+
+            /** Note: multiplying by null or NaN produces NaN (repping 0% real prob). */
+            public static Prob multiply(Prob a, Prob b) {
+                if (nullOrNaN(a) || nullOrNaN(b)) return new Prob(Double.NaN, dontLogAgain);
+                return new Prob(a.logP + b.logP, dontLogAgain);
+            }
+
+            /** Returns true if p is null or NaN. */
+            private static boolean nullOrNaN(Prob p) {
+                return (p == null || Double.isNaN(p.logP));
+            }
+
+            /** Returns a new instance with the same value as original. */
+            private static Prob copy(Prob original) {
+                return new Prob(original.logP, dontLogAgain);
             }
         }
+
+        class Binary implements Comparable<Binary> {
+
+            /**
+             * Use example: Binary b = new Binary(Long.toBinaryString(53249834L));
+             *
+             * When manipulating small binary strings, instantiate new Binary(string)
+             * When just reading large binary strings, instantiate new Binary(string,true)
+             * get(int i) returns a character '1' or '0', not an int.
+             */
+
+            private boolean[] d;
+            private int first; // Starting from left, the first (most remarkable) '1'
+            public int length;
+
+
+            public Binary(String binaryString) {
+                this(binaryString, false);
+            }
+            public Binary(String binaryString, boolean initWithMinArraySize) {
+                length = binaryString.length();
+                int size = Math.max(2*length, 1);
+                first = length/4;
+                if (initWithMinArraySize) {
+                    first = 0;
+                    size = Math.max(length, 1);
+                }
+                d = new boolean[size];
+                for (int i=0; i<length; i++) {
+                    if (binaryString.charAt(i) == '1') d[i+first] = true;
+                }
+            }
+
+            public void addFirst(char c) {
+                if (first-1 < 0) doubleArraySize();
+                first--;
+                d[first] = (c == '1' ? true : false);
+                length++;
+            }
+
+            public void addLast(char c) {
+                if (first+length >= d.length) doubleArraySize();
+                d[first+length] = (c == '1' ? true : false);
+                length++;
+            }
+
+            private void doubleArraySize() {
+                boolean[] bigArray = new boolean[(d.length+1) * 2];
+                int newFirst = bigArray.length / 4;
+                for (int i=0; i<length; i++) {
+                    bigArray[i + newFirst] = d[i + first];
+                }
+                first = newFirst;
+                d = bigArray;
+            }
+
+            public boolean flip(int i) {
+                boolean value = (this.d[first+i] ? false : true);
+                this.d[first+i] = value;
+                return value;
+            }
+
+            public void set(int i, char c) {
+                boolean value = (c == '1' ? true : false);
+                this.d[first+i] = value;
+            }
+
+            public char get(int i) {
+                return (this.d[first+i] ? '1' : '0');
+            }
+
+            @Override
+            public int compareTo(Binary o) {
+                if (this.length != o.length) return this.length - o.length;
+                int len = this.length;
+                for (int i=0; i<len; i++) {
+                    int diff = this.get(i) - o.get(i);
+                    if (diff != 0) return diff;
+                }
+                return 0;
+            }
+
+            @Override
+            public String toString() {
+                StringBuilder sb = new StringBuilder();
+                for (int i=0; i<length; i++) {
+                    sb.append(d[i+first] ? '1' : '0');
+                }
+                return sb.toString();
+            }
+
+
+        }
+
+        /************************** Range queries **************************/
 
         class FenwickMin {
             long n;
@@ -493,6 +565,409 @@ public class B {
             }
 
         }
+
+        /***************************** Graphs *****************************/
+
+        List<Integer>[] toGraph(IO io, int n) {
+            List<Integer>[] g = new ArrayList[n+1];
+            for (int i=1; i<=n; i++) g[i] = new ArrayList<>();
+            for (int i=1; i<=n-1; i++) {
+                int a = io.nextInt();
+                int b = io.nextInt();
+                g[a].add(b);
+                g[b].add(a);
+            }
+            return g;
+        }
+
+        class Graph {
+            HashMap<Long, List<Long>> edges;
+
+            public Graph() {
+                edges = new HashMap<>();
+            }
+
+            List<Long> getSetNeighbors(Long node) {
+                List<Long> neighbors = edges.get(node);
+                if (neighbors == null) {
+                    neighbors = new ArrayList<>();
+                    edges.put(node, neighbors);
+                }
+                return neighbors;
+            }
+
+            void addBiEdge(Long a, Long b) {
+                addEdge(a, b);
+                addEdge(b, a);
+            }
+
+            void addEdge(Long from, Long to) {
+                getSetNeighbors(to); // make sure all have initialized lists
+                List<Long> neighbors = getSetNeighbors(from);
+                neighbors.add(to);
+            }
+
+            // topoSort variables
+            int UNTOUCHED = 0;
+            int FINISHED = 2;
+            int INPROGRESS = 1;
+            HashMap<Long, Integer> vis;
+            List<Long> topoAns;
+            List<Long> failDueToCycle = new ArrayList<Long>() {{ add(-1L); }};
+
+            List<Long> topoSort() {
+                topoAns = new ArrayList<>();
+                vis = new HashMap<>();
+                for (Long a : edges.keySet()) {
+                    if (!topoDFS(a)) return failDueToCycle;
+                }
+                Collections.reverse(topoAns);
+                return topoAns;
+            }
+
+            boolean topoDFS(long curr) {
+                Integer status = vis.get(curr);
+                if (status == null) status = UNTOUCHED;
+                if (status == FINISHED) return true;
+                if (status == INPROGRESS) {
+                    return false;
+                }
+                vis.put(curr, INPROGRESS);
+                for (long next : edges.get(curr)) {
+                    if (!topoDFS(next)) return false;
+                }
+                vis.put(curr, FINISHED);
+                topoAns.add(curr);
+                return true;
+            }
+
+        }
+
+        public class StronglyConnectedComponents {
+
+            /** Kosaraju's algorithm */
+
+            ArrayList<Integer>[] forw;
+            ArrayList<Integer>[] bacw;
+
+            /** Use: getCount(2, new int[] {1,2}, new int[] {2,1}) */
+            public int getCount(int n, int[] mista, int[] minne) {
+                forw = new ArrayList[n+1];
+                bacw = new ArrayList[n+1];
+                for (int i=1; i<=n; i++) {
+                    forw[i] = new ArrayList<Integer>();
+                    bacw[i] = new ArrayList<Integer>();
+                }
+                for (int i=0; i<mista.length; i++) {
+                    int a = mista[i];
+                    int b = minne[i];
+                    forw[a].add(b);
+                    bacw[b].add(a);
+                }
+                int count = 0;
+                List<Integer> list = new ArrayList<Integer>();
+                boolean[] visited = new boolean[n+1];
+                for (int i=1; i<=n; i++) {
+                    dfsForward(i, visited, list);
+                }
+                visited = new boolean[n+1];
+                for (int i=n-1; i>=0; i--) {
+                    int node = list.get(i);
+                    if (visited[node]) continue;
+                    count++;
+                    dfsBackward(node, visited);
+                }
+                return count;
+            }
+
+            public void dfsForward(int i, boolean[] visited, List<Integer> list) {
+                if (visited[i]) return;
+                visited[i] = true;
+                for (int neighbor : forw[i]) {
+                    dfsForward(neighbor, visited, list);
+                }
+                list.add(i);
+            }
+
+            public void dfsBackward(int i, boolean[] visited) {
+                if (visited[i]) return;
+                visited[i] = true;
+                for (int neighbor : bacw[i]) {
+                    dfsBackward(neighbor, visited);
+                }
+            }
+        }
+
+        class LCAFinder {
+
+            /* O(n log n) Initialize: new LCAFinder(graph)
+             * O(log n) Queries: find(a,b) returns lowest common ancestor for nodes a and b */
+
+            int[] nodes;
+            int[] depths;
+            int[] entries;
+            int pointer;
+            FenwickMin fenwick;
+
+            public LCAFinder(List<Integer>[] graph) {
+                this.nodes = new int[(int)10e6];
+                this.depths = new int[(int)10e6];
+                this.entries = new int[graph.length];
+                this.pointer = 1;
+                boolean[] visited = new boolean[graph.length+1];
+                dfs(1, 0, graph, visited);
+                fenwick = new FenwickMin(pointer-1);
+                for (int i=1; i<pointer; i++) {
+                    fenwick.set(i, depths[i] * 1000000L + i);
+                }
+            }
+
+            private void dfs(int node, int depth, List<Integer>[] graph, boolean[] visited) {
+                visited[node] = true;
+                entries[node] = pointer;
+                nodes[pointer] = node;
+                depths[pointer] = depth;
+                pointer++;
+                for (int neighbor : graph[node]) {
+                    if (visited[neighbor]) continue;
+                    dfs(neighbor, depth+1, graph, visited);
+                    nodes[pointer] = node;
+                    depths[pointer] = depth;
+                    pointer++;
+                }
+            }
+
+            public int find(int a, int b) {
+                int left = entries[a];
+                int right = entries[b];
+                if (left > right) {
+                    int temp = left;
+                    left = right;
+                    right = temp;
+                }
+                long mixedBag = fenwick.getMin(left, right);
+                int index = (int) (mixedBag % 1000000L);
+                return nodes[index];
+            }
+        }
+
+        /**************************** Geometry ****************************/
+
+        class Point {
+            int y;
+            int x;
+
+            public Point(int y, int x) {
+                this.y = y;
+                this.x = x;
+            }
+        }
+
+        boolean segmentsIntersect(double x1, double y1, double x2, double y2, double x3, double y3, double x4, double y4) {
+            // Returns true if segment 1-2 intersects segment 3-4
+
+            if (x1 == x2 && x3 == x4) {
+                // Both segments are vertical
+                if (x1 != x3) return false;
+                if (min(y1,y2) < min(y3,y4)) {
+                    return max(y1,y2) >= min(y3,y4);
+                } else {
+                    return max(y3,y4) >= min(y1,y2);
+                }
+            }
+            if (x1 == x2) {
+                // Only segment 1-2 is vertical. Does segment 3-4 cross it? y = a*x + b
+                double a34 = (y4-y3)/(x4-x3);
+                double b34 = y3 - a34*x3;
+                double y = a34 * x1 + b34;
+                return y >= min(y1,y2) && y <= max(y1,y2) && x1 >= min(x3,x4) && x1 <= max(x3,x4);
+            }
+            if (x3 == x4) {
+                // Only segment 3-4 is vertical. Does segment 1-2 cross it? y = a*x + b
+                double a12 = (y2-y1)/(x2-x1);
+                double b12 = y1 - a12*x1;
+                double y = a12 * x3 + b12;
+                return y >= min(y3,y4) && y <= max(y3,y4) && x3 >= min(x1,x2) && x3 <= max(x1,x2);
+            }
+            double a12 = (y2-y1)/(x2-x1);
+            double b12 = y1 - a12*x1;
+            double a34 = (y4-y3)/(x4-x3);
+            double b34 = y3 - a34*x3;
+            if (closeToZero(a12 - a34)) {
+                // Parallel lines
+                return closeToZero(b12 - b34);
+            }
+            // Non parallel non vertical lines intersect at x. Is x part of both segments?
+            double x = -(b12-b34)/(a12-a34);
+            return x >= min(x1,x2) && x <= max(x1,x2) && x >= min(x3,x4) && x <= max(x3,x4);
+        }
+
+        boolean pointInsideRectangle(Point p, List<Point> r) {
+            Point a = r.get(0);
+            Point b = r.get(1);
+            Point c = r.get(2);
+            Point d = r.get(3);
+            double apd = areaOfTriangle(a, p, d);
+            double dpc = areaOfTriangle(d, p, c);
+            double cpb = areaOfTriangle(c, p, b);
+            double pba = areaOfTriangle(p, b, a);
+            double sumOfAreas = apd + dpc + cpb + pba;
+            if (closeToZero(sumOfAreas - areaOfRectangle(r))) {
+                if (closeToZero(apd) || closeToZero(dpc) || closeToZero(cpb) || closeToZero(pba)) {
+                    return false;
+                }
+                return true;
+            }
+            return false;
+        }
+
+        double areaOfTriangle(Point a, Point b, Point c) {
+            return 0.5 * Math.abs((a.x-c.x)*(b.y-a.y)-(a.x-b.x)*(c.y-a.y));
+        }
+
+        double areaOfRectangle(List<Point> r) {
+            double side1xDiff = r.get(0).x - r.get(1).x;
+            double side1yDiff = r.get(0).y - r.get(1).y;
+            double side2xDiff = r.get(1).x - r.get(2).x;
+            double side2yDiff = r.get(1).y - r.get(2).y;
+            double side1 = Math.sqrt(side1xDiff * side1xDiff + side1yDiff * side1yDiff);
+            double side2 = Math.sqrt(side2xDiff * side2xDiff + side2yDiff * side2yDiff);
+            return side1 * side2;
+        }
+
+        boolean pointsOnSameLine(double x1, double y1, double x2, double y2, double x3, double y3) {
+            double areaTimes2 = x1 * (y2 - y3) + x2 * (y3 - y1) + x3 * (y1 - y2);
+            return (closeToZero(areaTimes2));
+        }
+
+        class PointToLineSegmentDistanceCalculator {
+
+            // Just call this
+            double minDistFromPointToLineSegment(double point_x, double point_y, double x1, double y1, double x2, double y2) {
+                return Math.sqrt(distToSegmentSquared(point_x, point_y, x1, y1, x2, y2));
+            }
+
+            private double distToSegmentSquared(double point_x, double point_y, double x1, double y1, double x2, double y2) {
+                double l2 = dist2(x1,y1,x2,y2);
+                if (l2 == 0) return dist2(point_x, point_y, x1, y1);
+                double t = ((point_x - x1) * (x2 - x1) + (point_y - y1) * (y2 - y1)) / l2;
+                if (t < 0) return dist2(point_x, point_y, x1, y1);
+                if (t > 1) return dist2(point_x, point_y, x2, y2);
+
+                double com_x = x1 + t * (x2 - x1);
+                double com_y = y1 + t * (y2 - y1);
+                return dist2(point_x, point_y, com_x, com_y);
+            }
+
+            private double dist2(double x1, double y1, double x2, double y2) {
+                return Math.pow((x1 - x2), 2) + Math.pow((y1 - y2), 2);
+            }
+
+        }
+
+        /****************************** Math ******************************/
+
+        long pow(long base, int exp) {
+            if (exp == 0) return 1L;
+            long x = pow(base, exp/2);
+            long ans = x * x;
+            if (exp % 2 != 0) ans *= base;
+            return ans;
+        }
+
+        long gcd(long... v) {
+            /** Chained calls to Euclidean algorithm. */
+            if (v.length == 1) return v[0];
+            long ans = gcd(v[1], v[0]);
+            for (int i=2; i<v.length; i++) {
+                ans = gcd(ans, v[i]);
+            }
+            return ans;
+        }
+
+        long gcd(long a, long b) {
+            /** Euclidean algorithm. */
+            if (b == 0) return a;
+            return gcd(b, a%b);
+        }
+
+        int[] generatePrimesUpTo(int last) {
+            /* Sieve of Eratosthenes. Practically O(n). Values of 0 indicate primes. */
+            int[] div = new int[last+1];
+            for (int x=2; x<=last; x++) {
+                if (div[x] > 0) continue;
+                for (int u=2*x; u<=last; u+=x) {
+                    div[u] = x;
+                }
+            }
+            return div;
+        }
+
+        long lcm(long a, long b) {
+            /** Least common multiple */
+            return a * b / gcd(a,b);
+        }
+
+        class BaseConverter {
+
+            /* Palauttaa luvun esityksen kannassa base */
+            public String convert(Long number, int base) {
+                return Long.toString(number, base);
+            }
+
+            /* Palauttaa luvun esityksen kannassa baseTo, kun annetaan luku Stringinä kannassa baseFrom */
+            public String convert(String number, int baseFrom, int baseTo) {
+                return Long.toString(Long.parseLong(number, baseFrom), baseTo);
+            }
+
+            /* Tulkitsee kannassa base esitetyn luvun longiksi (kannassa 10) */
+            public long longify(String number, int baseFrom) {
+                return Long.parseLong(number, baseFrom);
+            }
+        }
+
+        class BinomialCoefficients {
+            /** Total number of K sized unique combinations from pool of size N (unordered)
+             N! / ( K! (N - K)! )   */
+
+            /** For simple queries where output fits in long. */
+            public long biCo(long n, long k) {
+                long r = 1;
+                if (k > n) return 0;
+                for (long d = 1; d <= k; d++) {
+                    r *= n--;
+                    r /= d;
+                }
+                return r;
+            }
+
+            /** For multiple queries with same n, different k. */
+            public long[] precalcBinomialCoefficientsK(int n, int maxK) {
+                long v[] = new long[maxK+1];
+                v[0] = 1; // nC0 == 1
+                for (int i=1; i<=n; i++) {
+                    for (int j=Math.min(i,maxK); j>0; j--) {
+                        v[j] = v[j] + v[j-1]; // Pascal's triangle
+                    }
+                }
+                return v;
+            }
+
+            /** When output needs % MOD. */
+            public long[] precalcBinomialCoefficientsK(int n, int k, long M) {
+                long v[] = new long[k+1];
+                v[0] = 1; // nC0 == 1
+                for (int i=1; i<=n; i++) {
+                    for (int j=Math.min(i,k); j>0; j--) {
+                        v[j] = v[j] + v[j-1]; // Pascal's triangle
+                        v[j] %= M;
+                    }
+                }
+                return v;
+            }
+        }
+
+        /**************************** Strings ****************************/
 
         class Zalgo {
 
@@ -687,363 +1162,7 @@ public class B {
             }
         }
 
-        private static class Prob {
-
-            /** For heavy calculations on probabilities, this class
-             *  provides more accuracy & efficiency than doubles.
-             *  Math explained: https://en.wikipedia.org/wiki/Log_probability
-             *  Quick start:
-             *      - Instantiate probabilities, eg. Prob a = new Prob(0.75)
-             *      - add(), multiply() return new objects, can perform on nulls & NaNs.
-             *      - get() returns probability as a readable double */
-
-            /** Logarithmized probability. Note: 0% represented by logP NaN. */
-            private double logP;
-
-            /** Construct instance with real probability. */
-            public Prob(double real) {
-                if (real > 0) this.logP = Math.log(real);
-                else this.logP = Double.NaN;
-            }
-
-            /** Construct instance with already logarithmized value. */
-            static boolean dontLogAgain = true;
-            public Prob(double logP, boolean anyBooleanHereToChooseThisConstructor) {
-                this.logP = logP;
-            }
-
-            /** Returns real probability as a double. */
-            public double get() {
-                return Math.exp(logP);
-            }
-
-            @Override
-            public String toString() {
-                return ""+get();
-            }
-
-            /***************** STATIC METHODS BELOW ********************/
-
-            /** Note: returns NaN only when a && b are both NaN/null. */
-            public static Prob add(Prob a, Prob b) {
-                if (nullOrNaN(a) && nullOrNaN(b)) return new Prob(Double.NaN, dontLogAgain);
-                if (nullOrNaN(a)) return copy(b);
-                if (nullOrNaN(b)) return copy(a);
-
-                double x = Math.max(a.logP, b.logP);
-                double y = Math.min(a.logP, b.logP);
-                double sum = x + Math.log(1 + Math.exp(y - x));
-                return new Prob(sum, dontLogAgain);
-            }
-
-            /** Note: multiplying by null or NaN produces NaN (repping 0% real prob). */
-            public static Prob multiply(Prob a, Prob b) {
-                if (nullOrNaN(a) || nullOrNaN(b)) return new Prob(Double.NaN, dontLogAgain);
-                return new Prob(a.logP + b.logP, dontLogAgain);
-            }
-
-            /** Returns true if p is null or NaN. */
-            private static boolean nullOrNaN(Prob p) {
-                return (p == null || Double.isNaN(p.logP));
-            }
-
-            /** Returns a new instance with the same value as original. */
-            private static Prob copy(Prob original) {
-                return new Prob(original.logP, dontLogAgain);
-            }
-        }
-
-        public class StronglyConnectedComponents {
-
-            /** Kosaraju's algorithm */
-
-            ArrayList<Integer>[] forw;
-            ArrayList<Integer>[] bacw;
-
-            /** Use: getCount(2, new int[] {1,2}, new int[] {2,1}) */
-            public int getCount(int n, int[] mista, int[] minne) {
-                forw = new ArrayList[n+1];
-                bacw = new ArrayList[n+1];
-                for (int i=1; i<=n; i++) {
-                    forw[i] = new ArrayList<Integer>();
-                    bacw[i] = new ArrayList<Integer>();
-                }
-                for (int i=0; i<mista.length; i++) {
-                    int a = mista[i];
-                    int b = minne[i];
-                    forw[a].add(b);
-                    bacw[b].add(a);
-                }
-                int count = 0;
-                List<Integer> list = new ArrayList<Integer>();
-                boolean[] visited = new boolean[n+1];
-                for (int i=1; i<=n; i++) {
-                    dfsForward(i, visited, list);
-                }
-                visited = new boolean[n+1];
-                for (int i=n-1; i>=0; i--) {
-                    int node = list.get(i);
-                    if (visited[node]) continue;
-                    count++;
-                    dfsBackward(node, visited);
-                }
-                return count;
-            }
-
-            public void dfsForward(int i, boolean[] visited, List<Integer> list) {
-                if (visited[i]) return;
-                visited[i] = true;
-                for (int neighbor : forw[i]) {
-                    dfsForward(neighbor, visited, list);
-                }
-                list.add(i);
-            }
-
-            public void dfsBackward(int i, boolean[] visited) {
-                if (visited[i]) return;
-                visited[i] = true;
-                for (int neighbor : bacw[i]) {
-                    dfsBackward(neighbor, visited);
-                }
-            }
-        }
-
-        class DrawGrid {
-
-            void draw(boolean[][] d) {
-                System.out.print("  ");
-                for (int x=0; x<d[0].length; x++) {
-                    System.out.print(" " + x + " ");
-                }
-                System.out.println("");
-                for (int y=0; y<d.length; y++) {
-                    System.out.print(y + " ");
-                    for (int x=0; x<d[0].length; x++) {
-                        System.out.print((d[y][x] ? "[x]" : "[ ]"));
-                    }
-                    System.out.println("");
-                }
-            }
-
-            void draw(int[][] d) {
-                int max = 1;
-                for (int y=0; y<d.length; y++) {
-                    for (int x=0; x<d[0].length; x++) {
-                        max = Math.max(max, ("" + d[y][x]).length());
-                    }
-                }
-                System.out.print("  ");
-                String format = "%" + (max+2) + "s";
-                for (int x=0; x<d[0].length; x++) {
-                    System.out.print(String.format(format, x) + " ");
-                }
-                format = "%" + (max) + "s";
-                System.out.println("");
-                for (int y=0; y<d.length; y++) {
-                    System.out.print(y + " ");
-                    for (int x=0; x<d[0].length; x++) {
-                        System.out.print(" [" + String.format(format, (d[y][x])) + "]");
-                    }
-                    System.out.println("");
-                }
-            }
-
-        }
-
-        class BaseConverter {
-
-            /* Palauttaa luvun esityksen kannassa base */
-            public String convert(Long number, int base) {
-                return Long.toString(number, base);
-            }
-
-            /* Palauttaa luvun esityksen kannassa baseTo, kun annetaan luku Stringinä kannassa baseFrom */
-            public String convert(String number, int baseFrom, int baseTo) {
-                return Long.toString(Long.parseLong(number, baseFrom), baseTo);
-            }
-
-            /* Tulkitsee kannassa base esitetyn luvun longiksi (kannassa 10) */
-            public long longify(String number, int baseFrom) {
-                return Long.parseLong(number, baseFrom);
-            }
-        }
-
-        class Binary implements Comparable<Binary> {
-
-            /**
-             * Use example: Binary b = new Binary(Long.toBinaryString(53249834L));
-             *
-             * When manipulating small binary strings, instantiate new Binary(string)
-             * When just reading large binary strings, instantiate new Binary(string,true)
-             * get(int i) returns a character '1' or '0', not an int.
-             */
-
-            private boolean[] d;
-            private int first; // Starting from left, the first (most remarkable) '1'
-            public int length;
-
-
-            public Binary(String binaryString) {
-                this(binaryString, false);
-            }
-            public Binary(String binaryString, boolean initWithMinArraySize) {
-                length = binaryString.length();
-                int size = Math.max(2*length, 1);
-                first = length/4;
-                if (initWithMinArraySize) {
-                    first = 0;
-                    size = Math.max(length, 1);
-                }
-                d = new boolean[size];
-                for (int i=0; i<length; i++) {
-                    if (binaryString.charAt(i) == '1') d[i+first] = true;
-                }
-            }
-
-            public void addFirst(char c) {
-                if (first-1 < 0) doubleArraySize();
-                first--;
-                d[first] = (c == '1' ? true : false);
-                length++;
-            }
-
-            public void addLast(char c) {
-                if (first+length >= d.length) doubleArraySize();
-                d[first+length] = (c == '1' ? true : false);
-                length++;
-            }
-
-            private void doubleArraySize() {
-                boolean[] bigArray = new boolean[(d.length+1) * 2];
-                int newFirst = bigArray.length / 4;
-                for (int i=0; i<length; i++) {
-                    bigArray[i + newFirst] = d[i + first];
-                }
-                first = newFirst;
-                d = bigArray;
-            }
-
-            public boolean flip(int i) {
-                boolean value = (this.d[first+i] ? false : true);
-                this.d[first+i] = value;
-                return value;
-            }
-
-            public void set(int i, char c) {
-                boolean value = (c == '1' ? true : false);
-                this.d[first+i] = value;
-            }
-
-            public char get(int i) {
-                return (this.d[first+i] ? '1' : '0');
-            }
-
-            @Override
-            public int compareTo(Binary o) {
-                if (this.length != o.length) return this.length - o.length;
-                int len = this.length;
-                for (int i=0; i<len; i++) {
-                    int diff = this.get(i) - o.get(i);
-                    if (diff != 0) return diff;
-                }
-                return 0;
-            }
-
-            @Override
-            public String toString() {
-                StringBuilder sb = new StringBuilder();
-                for (int i=0; i<length; i++) {
-                    sb.append(d[i+first] ? '1' : '0');
-                }
-                return sb.toString();
-            }
-
-
-        }
-
-        class BinomialCoefficients {
-            /** Total number of K sized unique combinations from pool of size N (unordered)
-             N! / ( K! (N - K)! )   */
-
-            /** For simple queries where output fits in long. */
-            public long biCo(long n, long k) {
-                long r = 1;
-                if (k > n) return 0;
-                for (long d = 1; d <= k; d++) {
-                    r *= n--;
-                    r /= d;
-                }
-                return r;
-            }
-
-            /** For multiple queries with same n, different k. */
-            public long[] precalcBinomialCoefficientsK(int n, int maxK) {
-                long v[] = new long[maxK+1];
-                v[0] = 1; // nC0 == 1
-                for (int i=1; i<=n; i++) {
-                    for (int j=Math.min(i,maxK); j>0; j--) {
-                        v[j] = v[j] + v[j-1]; // Pascal's triangle
-                    }
-                }
-                return v;
-            }
-
-            /** When output needs % MOD. */
-            public long[] precalcBinomialCoefficientsK(int n, int k, long M) {
-                long v[] = new long[k+1];
-                v[0] = 1; // nC0 == 1
-                for (int i=1; i<=n; i++) {
-                    for (int j=Math.min(i,k); j>0; j--) {
-                        v[j] = v[j] + v[j-1]; // Pascal's triangle
-                        v[j] %= M;
-                    }
-                }
-                return v;
-            }
-        }
-
-        class Trie {
-            int N;
-            int Z;
-            int nextFreeId;
-            int[][] pointers;
-            boolean[] end;
-
-            /** maxLenSum = maximum possible sum of length of words */
-            public Trie(int maxLenSum, int alphabetSize) {
-                this.N = maxLenSum;
-                this.Z = alphabetSize;
-                this.nextFreeId = 1;
-                pointers = new int[N+1][alphabetSize];
-                end = new boolean[N+1];
-            }
-
-            public void addWord(String word) {
-                int curr = 0;
-                for (int j=0; j<word.length(); j++) {
-                    int c = word.charAt(j) - 'a';
-                    int next = pointers[curr][c];
-                    if (next == 0) {
-                        next = nextFreeId++;
-                        pointers[curr][c] = next;
-                    }
-                    curr = next;
-                }
-                end[curr] = true;
-            }
-
-            public boolean hasWord(String word) {
-                int curr = 0;
-                for (int j=0; j<word.length(); j++) {
-                    int c = word.charAt(j) - 'a';
-                    int next = pointers[curr][c];
-                    if (next == 0) return false;
-                    curr = next;
-                }
-                return end[curr];
-            }
-
-        }
+        /*************************** Technical ***************************/
 
         private class IO extends PrintWriter {
             private InputStreamReader r;
@@ -1307,6 +1426,3 @@ public class B {
     }
 
 }
-
-
-
