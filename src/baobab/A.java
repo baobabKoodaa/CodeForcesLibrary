@@ -529,40 +529,123 @@ public class A {
         }
 
         class SegmentTree {
-            /** Query sums with log(n) modifyRange */
+
+            /* Provides log(n) operations for:
+             * - Range query (sum, min or max)
+             * - Range update ("+8 to all values between indexes 4 and 94")
+             */
+
             int N;
-            long[] p;
+            long[] lazy;
+            long[] sum;
+            long[] min;
+            long[] max;
+            boolean supportSum;
+            boolean supportMin;
+            boolean supportMax;
 
             public SegmentTree(int n) {
-                /* TODO: Test that this works. */
-                for (N=2; N<n; N++) N *= 2;
-                p = new long[2*N];
+                this(n, true, true, true);
             }
 
-            public void modifyRange(int a, int b, long change) {
-                muuta(a, change);
-                muuta(b+1, -change);
+            public SegmentTree(int n, boolean supportSum, boolean supportMin, boolean supportMax) {
+                for (N=2; N<n;) N*=2;
+                this.lazy = new long[2*N];
+                this.supportSum = supportSum;
+                this.supportMin = supportMin;
+                this.supportMax = supportMax;
+                if (this.supportSum) this.sum = new long[2*N];
+                if (this.supportMin) this.min = new long[2*N];
+                if (this.supportMax) this.max = new long[2*N];
             }
 
-            void muuta(int k, long muutos) {
-                k += N;
-                p[k] += muutos;
-                for (k /= 2; k >= 1; k /= 2) {
-                    p[k] = p[2*k] + p[2*k+1];
+            void modifyRange(long x, int a, int b) {
+                modifyRec(a, b, 1, 0, N-1, x);
+            }
+
+            void setRange() {
+                //TODO
+            }
+
+            long getSum(int a, int b) {
+                return querySum(a, b, 1, 0, N-1);
+            }
+
+            long getMin(int a, int b) {
+                return queryMin(a, b, 1, 0, N-1);
+            }
+
+            long getMax(int a, int b) {
+                return queryMax(a, b, 1, 0, N-1);
+            }
+
+            private long querySum(int wantedLeft, int wantedRight, int i, int actualLeft, int actualRight) {
+                if (wantedLeft > actualRight || wantedRight < actualLeft) {
+                    return 0;
                 }
+                if (wantedLeft == actualLeft && wantedRight == actualRight) {
+                    int count = wantedRight - wantedLeft + 1;
+                    return sum[i] + count * lazy[i];
+                }
+                if (lazy[i] != 0) propagate(i, actualLeft, actualRight);
+                int d = (actualRight - actualLeft + 1) / 2;
+                long left = querySum(wantedLeft, min(actualLeft+d-1, wantedRight), 2*i, actualLeft, actualLeft+d-1);
+                long right = querySum(max(actualLeft+d, wantedLeft), wantedRight, 2*i+1, actualLeft+d, actualRight);
+                return left + right;
             }
 
-            public long get(int k) {
-                int a = N;
-                int b = k+N;
-                long s = 0;
-                while (a <= b) {
-                    if (a%2 == 1) s += p[a++];
-                    if (b%2 == 0) s += p[b--];
-                    a /= 2;
-                    b /= 2;
+            private long queryMin(int wantedLeft, int wantedRight, int i, int actualLeft, int actualRight) {
+                if (wantedLeft > actualRight || wantedRight < actualLeft) {
+                    return 0;
                 }
-                return s;
+                if (wantedLeft == actualLeft && wantedRight == actualRight) {
+                    return min[i] + lazy[i];
+                }
+                if (lazy[i] != 0) propagate(i, actualLeft, actualRight);
+                int d = (actualRight - actualLeft + 1) / 2;
+                long left = queryMin(wantedLeft, min(actualLeft+d-1, wantedRight), 2*i, actualLeft, actualLeft+d-1);
+                long right = queryMin(max(actualLeft+d, wantedLeft), wantedRight, 2*i+1, actualLeft+d, actualRight);
+                return min(left, right);
+            }
+
+            private long queryMax(int wantedLeft, int wantedRight, int i, int actualLeft, int actualRight) {
+                if (wantedLeft > actualRight || wantedRight < actualLeft) {
+                    return 0;
+                }
+                if (wantedLeft == actualLeft && wantedRight == actualRight) {
+                    return max[i] + lazy[i];
+                }
+                if (lazy[i] != 0) propagate(i, actualLeft, actualRight);
+                int d = (actualRight - actualLeft + 1) / 2;
+                long left = queryMax(wantedLeft, min(actualLeft+d-1, wantedRight), 2*i, actualLeft, actualLeft+d-1);
+                long right = queryMax(max(actualLeft+d, wantedLeft), wantedRight, 2*i+1, actualLeft+d, actualRight);
+                return max(left, right);
+            }
+
+            private void modifyRec(int wantedLeft, int wantedRight, int i, int actualLeft, int actualRight, long value) {
+                if (wantedLeft > actualRight || wantedRight < actualLeft) {
+                    return;
+                }
+                if (wantedLeft == actualLeft && wantedRight == actualRight) {
+                    lazy[i] += value;
+                    return;
+                }
+                if (lazy[i] != 0) propagate(i, actualLeft, actualRight);
+                int d = (actualRight - actualLeft + 1) / 2;
+                modifyRec(wantedLeft, min(actualLeft+d-1, wantedRight), 2*i, actualLeft, actualLeft+d-1, value);
+                modifyRec(max(actualLeft+d, wantedLeft), wantedRight, 2*i+1, actualLeft+d, actualRight, value);
+                if (supportSum) sum[i] += value * (min(actualRight, wantedRight) - max(actualLeft, wantedLeft) + 1);
+                if (supportMin) min[i] = min(min[2*i] + lazy[2*i], min[2*i+1] + lazy[2*i+1]);
+                if (supportMax) max[i] = max(max[2*i] + lazy[2*i], max[2*i+1] + lazy[2*i+1]);
+            }
+
+            private void propagate(int i, int actualLeft, int actualRight) {
+                lazy[2*i] += lazy[i];
+                lazy[2*i+1] += lazy[i];
+                if (supportSum) sum[i] += lazy[i] * (actualRight - actualLeft + 1);
+                if (supportMin) min[i] += lazy[i];
+                if (supportMax) max[i] += lazy[i];
+                lazy[i] = 0;
             }
 
         }
