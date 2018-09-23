@@ -41,7 +41,7 @@ public class B {
 
         boolean closeToZero(double v) {
             // Check if double is close to zero, considering precision issues.
-            return Math.abs(v) <= 0.0000000000001;
+            return Math.abs(v) <= 0.0000000001;
         }
 
         class DrawGrid {
@@ -885,7 +885,7 @@ public class B {
             return x >= min(x1,x2) && x <= max(x1,x2) && x >= min(x3,x4) && x <= max(x3,x4);
         }
 
-        boolean pointInsideRectangle(Point p, List<Point> r) {
+        boolean pointInsideRectangle(Point p, List<Point> r, boolean countBorderAsInside) {
             Point a = r.get(0);
             Point b = r.get(1);
             Point c = r.get(2);
@@ -897,7 +897,7 @@ public class B {
             double sumOfAreas = apd + dpc + cpb + pba;
             if (closeToZero(sumOfAreas - areaOfRectangle(r))) {
                 if (closeToZero(apd) || closeToZero(dpc) || closeToZero(cpb) || closeToZero(pba)) {
-                    return false;
+                    return countBorderAsInside;
                 }
                 return true;
             }
