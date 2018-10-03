@@ -1246,6 +1246,27 @@ public class G {
             }
         }
 
+        int editDistance(String a, String b) {
+            a = "#"+a;
+            b = "#"+b;
+            int n = a.length();
+            int m = b.length();
+            int[][] dp = new int[n+1][m+1];
+            for (int y=0; y<=n; y++) {
+                for (int x=0; x<=m; x++) {
+                    if (y == 0) dp[y][x] = x;
+                    else if (x == 0) dp[y][x] = y;
+                    else {
+                        int e1 = dp[y-1][x] + 1;
+                        int e2 = dp[y][x-1] + 1;
+                        int e3 = dp[y-1][x-1] + (a.charAt(y-1) != b.charAt(x-1) ? 1 : 0);
+                        dp[y][x] = min(e1, e2, e3);
+                    }
+                }
+            }
+            return dp[n][m];
+        }
+
         /*************************** Technical ***************************/
 
         private class IO extends PrintWriter {
