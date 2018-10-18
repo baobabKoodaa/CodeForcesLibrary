@@ -1051,6 +1051,14 @@ public class E {
             }
         }
 
+        int invertNumber(int a, int k) {
+            // Inverts the binary representation of a, using only k last bits e.g. 01101 -> 10010
+            int inv32k = ~a;
+            int mask = 1;
+            for (int i = 1; i < k; ++i) mask |= mask << 1;
+            return inv32k & mask;
+        }
+
         /**************************** Strings ****************************/
 
         class Zalgo {
