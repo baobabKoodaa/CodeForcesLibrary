@@ -596,7 +596,7 @@ public class A {
 
             private long queryMin(int wantedLeft, int wantedRight, int i, int actualLeft, int actualRight) {
                 if (wantedLeft > actualRight || wantedRight < actualLeft) {
-                    return 0;
+                    return Long.MAX_VALUE;
                 }
                 if (wantedLeft == actualLeft && wantedRight == actualRight) {
                     return min[i] + lazy[i];
@@ -610,7 +610,7 @@ public class A {
 
             private long queryMax(int wantedLeft, int wantedRight, int i, int actualLeft, int actualRight) {
                 if (wantedLeft > actualRight || wantedRight < actualLeft) {
-                    return 0;
+                    return Long.MIN_VALUE;
                 }
                 if (wantedLeft == actualLeft && wantedRight == actualRight) {
                     return max[i] + lazy[i];
