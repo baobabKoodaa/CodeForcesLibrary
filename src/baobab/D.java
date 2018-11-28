@@ -653,6 +653,7 @@ public class D {
         /***************************** Graphs *****************************/
 
         List<Integer>[] toGraph(IO io, int n) {
+            /* Trees only. */
             List<Integer>[] g = new ArrayList[n+1];
             for (int i=1; i<=n; i++) g[i] = new ArrayList<>();
             for (int i=1; i<=n-1; i++) {
@@ -665,88 +666,38 @@ public class D {
         }
 
         class Graph {
-            HashMap<Long, List<Long>> edges;
 
-            public Graph() {
-                edges = new HashMap<>();
+            int n;
+            List<Integer>[] edges;
+
+            public Graph(int n) {
+                this.n = n;
+                edges = new ArrayList[n+1];
+                for (int i=1; i<=n; i++) edges[i] = new ArrayList<>();
             }
 
-            List<Long> getSetNeighbors(Long node) {
-                List<Long> neighbors = edges.get(node);
-                if (neighbors == null) {
-                    neighbors = new ArrayList<>();
-                    edges.put(node, neighbors);
-                }
-                return neighbors;
-            }
-
-            void addBiEdge(Long a, Long b) {
+            void addBiEdge(int a, int b) {
                 addEdge(a, b);
                 addEdge(b, a);
             }
 
-            void addEdge(Long from, Long to) {
-                getSetNeighbors(to); // make sure all have initialized lists
-                List<Long> neighbors = getSetNeighbors(from);
-                neighbors.add(to);
+            void addEdge(int from, int to) {
+                edges[from].add(to);
             }
 
-            // topoSort variables
-            int UNTOUCHED = 0;
-            int FINISHED = 2;
-            int INPROGRESS = 1;
-            HashMap<Long, Integer> vis;
-            List<Long> topoAns;
-            List<Long> failDueToCycle = new ArrayList<Long>() {{ add(-1L); }};
+            /*********** Strongly Connected Components (Kosaraju) ****************/
 
-            List<Long> topoSort() {
-                topoAns = new ArrayList<>();
-                vis = new HashMap<>();
-                for (Long a : edges.keySet()) {
-                    if (!topoDFS(a)) return failDueToCycle;
-                }
-                Collections.reverse(topoAns);
-                return topoAns;
-            }
-
-            boolean topoDFS(long curr) {
-                Integer status = vis.get(curr);
-                if (status == null) status = UNTOUCHED;
-                if (status == FINISHED) return true;
-                if (status == INPROGRESS) {
-                    return false;
-                }
-                vis.put(curr, INPROGRESS);
-                for (long next : edges.get(curr)) {
-                    if (!topoDFS(next)) return false;
-                }
-                vis.put(curr, FINISHED);
-                topoAns.add(curr);
-                return true;
-            }
-
-        }
-
-        public class StronglyConnectedComponents {
-
-            /** Kosaraju's algorithm */
-
-            ArrayList<Integer>[] forw;
             ArrayList<Integer>[] bacw;
 
-            /** Use: getCount(2, new int[] {1,2}, new int[] {2,1}) */
-            public int getCount(int n, int[] mista, int[] minne) {
-                forw = new ArrayList[n+1];
+            public int getCount() {
                 bacw = new ArrayList[n+1];
                 for (int i=1; i<=n; i++) {
-                    forw[i] = new ArrayList<Integer>();
                     bacw[i] = new ArrayList<Integer>();
                 }
-                for (int i=0; i<mista.length; i++) {
-                    int a = mista[i];
-                    int b = minne[i];
-                    forw[a].add(b);
-                    bacw[b].add(a);
+                for (int a=1; a<=n; a++) {
+                    for (int b : edges[a]) {
+                        bacw[b].add(a);
+                    }
                 }
                 int count = 0;
                 List<Integer> list = new ArrayList<Integer>();
@@ -764,22 +715,58 @@ public class D {
                 return count;
             }
 
-            public void dfsForward(int i, boolean[] visited, List<Integer> list) {
+            void dfsForward(int i, boolean[] visited, List<Integer> list) {
                 if (visited[i]) return;
                 visited[i] = true;
-                for (int neighbor : forw[i]) {
+                for (int neighbor : edges[i]) {
                     dfsForward(neighbor, visited, list);
                 }
                 list.add(i);
             }
 
-            public void dfsBackward(int i, boolean[] visited) {
+            void dfsBackward(int i, boolean[] visited) {
                 if (visited[i]) return;
                 visited[i] = true;
                 for (int neighbor : bacw[i]) {
                     dfsBackward(neighbor, visited);
                 }
             }
+
+            /************************* Topological Order **********************/
+
+            int UNTOUCHED = 0;
+            int FINISHED = 2;
+            int INPROGRESS = 1;
+            int[] vis;
+            List<Integer> topoAns;
+
+            // Returns nodes in topological order or null if cycle was found
+            public List<Integer> topoSort() {
+                topoAns = new ArrayList<>();
+                vis = new int[n+1];
+                for (int i=1; i<=n; i++) {
+                    if (!topoDFS(i)) return null;
+                }
+                Collections.reverse(topoAns);
+                return topoAns;
+            }
+
+            boolean topoDFS(int curr) {
+                Integer status = vis[curr];
+                if (status == null) status = UNTOUCHED;
+                if (status == FINISHED) return true;
+                if (status == INPROGRESS) {
+                    return false;
+                }
+                vis[curr] = INPROGRESS;
+                for (int next : edges[curr]) {
+                    if (!topoDFS(next)) return false;
+                }
+                vis[curr] = FINISHED;
+                topoAns.add(curr);
+                return true;
+            }
+
         }
 
         class LCAFinder {
