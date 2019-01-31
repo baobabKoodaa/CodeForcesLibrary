@@ -45,46 +45,65 @@ public class D {
             return Math.abs(v) <= 0.0000000001;
         }
 
-        class DrawGrid {
-
-            void draw(boolean[][] d) {
-                System.out.print("  ");
+        void draw(boolean[][] d) {
+            System.out.print("  ");
+            for (int x=0; x<d[0].length; x++) {
+                System.out.print(" " + x + " ");
+            }
+            System.out.println("");
+            for (int y=0; y<d.length; y++) {
+                System.out.print(y + " ");
                 for (int x=0; x<d[0].length; x++) {
-                    System.out.print(" " + x + " ");
+                    System.out.print((d[y][x] ? "[x]" : "[ ]"));
                 }
                 System.out.println("");
-                for (int y=0; y<d.length; y++) {
-                    System.out.print(y + " ");
-                    for (int x=0; x<d[0].length; x++) {
-                        System.out.print((d[y][x] ? "[x]" : "[ ]"));
-                    }
-                    System.out.println("");
-                }
             }
+        }
 
-            void draw(int[][] d) {
-                int max = 1;
-                for (int y=0; y<d.length; y++) {
-                    for (int x=0; x<d[0].length; x++) {
-                        max = Math.max(max, ("" + d[y][x]).length());
-                    }
-                }
-                System.out.print("  ");
-                String format = "%" + (max+2) + "s";
+        void draw(int[][] d) {
+            int max = 1;
+            for (int y=0; y<d.length; y++) {
                 for (int x=0; x<d[0].length; x++) {
-                    System.out.print(String.format(format, x) + " ");
-                }
-                format = "%" + (max) + "s";
-                System.out.println("");
-                for (int y=0; y<d.length; y++) {
-                    System.out.print(y + " ");
-                    for (int x=0; x<d[0].length; x++) {
-                        System.out.print(" [" + String.format(format, (d[y][x])) + "]");
-                    }
-                    System.out.println("");
+                    max = Math.max(max, ("" + d[y][x]).length());
                 }
             }
+            System.out.print("  ");
+            String format = "%" + (max+2) + "s";
+            for (int x=0; x<d[0].length; x++) {
+                System.out.print(String.format(format, x) + " ");
+            }
+            format = "%" + (max) + "s";
+            System.out.println("");
+            for (int y=0; y<d.length; y++) {
+                System.out.print(y + " ");
+                for (int x=0; x<d[0].length; x++) {
+                    System.out.print(" [" + String.format(format, (d[y][x])) + "]");
+                }
+                System.out.println("");
+            }
+        }
 
+        void draw(long[][] d) {
+            int max = 1;
+            for (int y=0; y<d.length; y++) {
+                for (int x=0; x<d[0].length; x++) {
+                    max = Math.max(max, ("" + d[y][x]).length());
+                }
+            }
+            System.out.print("  ");
+            String format = "%" + (max+2) + "s";
+            for (int x=0; x<d[0].length; x++) {
+                System.out.print(String.format(format, x) + " ");
+            }
+            format = "%" + (max) + "s";
+            System.out.println("");
+            for (int y=0; y<d.length; y++) {
+                System.out.print(y + " ");
+                for (int x=0; x<d[0].length; x++) {
+                    System.out.print(" [" + String.format(format, (d[y][x])) + "]");
+                }
+                System.out.println("");
+            }
         }
 
         class IDval implements Comparable<IDval> {
