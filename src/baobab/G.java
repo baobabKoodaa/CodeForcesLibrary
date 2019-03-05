@@ -563,6 +563,7 @@ public class G {
             boolean supportMin;
             boolean supportMax;
 
+            /** Indexes 0 and n are useable. */
             public SegmentTree(int n) {
                 this(n, true, true, true);
             }
@@ -586,6 +587,7 @@ public class G {
                 //TODO
             }
 
+            /** Ranges are inclusive. */
             long getSum(int a, int b) {
                 return querySum(a, b, 1, 0, N-1);
             }
