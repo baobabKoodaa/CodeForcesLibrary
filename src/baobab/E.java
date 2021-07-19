@@ -38,7 +38,7 @@ public class E {
 
         /************************** UTILITY CODE BELOW THIS LINE **************************/
 
-        long MOD = (long)1e9 + 7;
+        int MOD = (int)1e9 + 7;
 
         boolean closeToZero(double v) {
             // Check if double is close to zero, considering precision issues.
