@@ -569,7 +569,7 @@ public class E {
             }
 
             public SegmentTree(int n, boolean supportSum, boolean supportMin, boolean supportMax) {
-                for (N=2; N<n;) N*=2;
+                for (N=2; N<=n;) N*=2;
                 this.lazy = new long[2*N];
                 this.supportSum = supportSum;
                 this.supportMin = supportMin;
